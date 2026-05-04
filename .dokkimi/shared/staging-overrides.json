@@ -1,0 +1,7 @@
+{
+  "image": "ghcr.io/dokkimi/traffic-tester:latest",
+  "env": [
+    { "name": "NODE_ENV", "value": "staging" },
+    { "name": "DEBUG", "value": "true" }
+  ]
+}

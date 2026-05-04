@@ -1,0 +1,44 @@
+name: health-checks
+description: Smoke tests — verify all traffic-tester instances are up and responding
+config:
+  timeoutSeconds: 60
+items:
+  - $ref: ../shared/service-a.yaml
+  - $ref: ../shared/service-b.json
+  - $ref: ../shared/service-c.yaml
+tests:
+  - name: Health check returns OK
+    steps:
+      - - name: GET /health on service-a
+          action:
+            type: httpRequest
+            method: GET
+            url: service-a/health
+          assertions:
+            - assertions:
+                - path: response.status
+                  operator: eq
+                  value: 200
+                - path: response.body
+                  operator: eq
+                  value: OK
+        - name: GET /health on service-b
+          action:
+            type: httpRequest
+            method: GET
+            url: service-b/health
+          assertions:
+            - assertions:
+                - path: response.status
+                  operator: eq
+                  value: 200
+        - name: GET /health on service-c
+          action:
+            type: httpRequest
+            method: GET
+            url: service-c/health
+          assertions:
+            - assertions:
+                - path: response.status
+                  operator: eq
+                  value: 200

@@ -1,0 +1,321 @@
+name: redis-concurrent-and-stress
+description: |
+  Validates the Redis wire protocol proxy under concurrent access and with
+  bulk operations. Parallel dbQuery steps hit the same database
+  simultaneously, and MSET/MGET operations stress the proxy relay pipeline.
+config:
+  timeoutSeconds: 90
+items:
+  - $ref: ../../shared/redis.json
+tests:
+  - name: Parallel reads hit the proxy concurrently
+    steps:
+      - - name: Seed key-a
+          action:
+            type: dbQuery
+            database: redis-db
+            query: SET key-a value-a
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: Seed key-b
+          action:
+            type: dbQuery
+            database: redis-db
+            query: SET key-b value-b
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: Seed key-c
+          action:
+            type: dbQuery
+            database: redis-db
+            query: SET key-c value-c
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+      - - name: Read key-a
+          action:
+            type: dbQuery
+            database: redis-db
+            query: GET key-a
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data[0].value
+                  operator: eq
+                  value: value-a
+        - name: Read key-b
+          action:
+            type: dbQuery
+            database: redis-db
+            query: GET key-b
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data[0].value
+                  operator: eq
+                  value: value-b
+        - name: Read key-c
+          action:
+            type: dbQuery
+            database: redis-db
+            query: GET key-c
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data[0].value
+                  operator: eq
+                  value: value-c
+
+  - name: Parallel writes then read-back
+    steps:
+      - - name: SET parallel-1
+          action:
+            type: dbQuery
+            database: redis-db
+            query: SET par-1 alpha
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: SET parallel-2
+          action:
+            type: dbQuery
+            database: redis-db
+            query: SET par-2 beta
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: SET parallel-3
+          action:
+            type: dbQuery
+            database: redis-db
+            query: SET par-3 gamma
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+      - - name: Verify all three were written
+          action:
+            type: dbQuery
+            database: redis-db
+            query: MGET par-1 par-2 par-3
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data
+                  operator: length
+                  value: 3
+                - path: data[0].value
+                  operator: eq
+                  value: alpha
+                - path: data[1].value
+                  operator: eq
+                  value: beta
+                - path: data[2].value
+                  operator: eq
+                  value: gamma
+
+  - name: Bulk MSET and MGET with many keys
+    steps:
+      - - name: MSET 20 keys at once
+          action:
+            type: dbQuery
+            database: redis-db
+            query: >
+              MSET
+              bulk-01 v01 bulk-02 v02 bulk-03 v03 bulk-04 v04 bulk-05 v05
+              bulk-06 v06 bulk-07 v07 bulk-08 v08 bulk-09 v09 bulk-10 v10
+              bulk-11 v11 bulk-12 v12 bulk-13 v13 bulk-14 v14 bulk-15 v15
+              bulk-16 v16 bulk-17 v17 bulk-18 v18 bulk-19 v19 bulk-20 v20
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data[0].value
+                  operator: eq
+                  value: OK
+      - - name: MGET all 20 keys
+          action:
+            type: dbQuery
+            database: redis-db
+            query: >
+              MGET
+              bulk-01 bulk-02 bulk-03 bulk-04 bulk-05
+              bulk-06 bulk-07 bulk-08 bulk-09 bulk-10
+              bulk-11 bulk-12 bulk-13 bulk-14 bulk-15
+              bulk-16 bulk-17 bulk-18 bulk-19 bulk-20
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data
+                  operator: length
+                  value: 20
+                - path: data[0].value
+                  operator: eq
+                  value: v01
+                - path: data[19].value
+                  operator: eq
+                  value: v20
+
+  - name: Concurrent INCR on the same key
+    steps:
+      - - name: Initialize counter
+          action:
+            type: dbQuery
+            database: redis-db
+            query: SET race-counter 0
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+      - - name: INCR from client 1
+          action:
+            type: dbQuery
+            database: redis-db
+            query: INCR race-counter
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: INCR from client 2
+          action:
+            type: dbQuery
+            database: redis-db
+            query: INCR race-counter
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: INCR from client 3
+          action:
+            type: dbQuery
+            database: redis-db
+            query: INCR race-counter
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+      - - name: Verify counter equals 3
+          action:
+            type: dbQuery
+            database: redis-db
+            query: GET race-counter
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data[0].value
+                  operator: eq
+                  value: '3'
+
+  - name: Mixed data structures in parallel
+    steps:
+      - - name: SET a string
+          action:
+            type: dbQuery
+            database: redis-db
+            query: SET mix-string hello
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: HSET a hash
+          action:
+            type: dbQuery
+            database: redis-db
+            query: HSET mix-hash field1 val1 field2 val2
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: LPUSH to a list
+          action:
+            type: dbQuery
+            database: redis-db
+            query: LPUSH mix-list z y x
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+      - - name: Read string
+          action:
+            type: dbQuery
+            database: redis-db
+            query: GET mix-string
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data[0].value
+                  operator: eq
+                  value: hello
+        - name: Read hash
+          action:
+            type: dbQuery
+            database: redis-db
+            query: HGETALL mix-hash
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data[0].field1
+                  operator: eq
+                  value: val1
+                - path: data[0].field2
+                  operator: eq
+                  value: val2
+        - name: Read list
+          action:
+            type: dbQuery
+            database: redis-db
+            query: LRANGE mix-list 0 -1
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data
+                  operator: length
+                  value: 3
+                - path: data[0].value
+                  operator: eq
+                  value: x
+                - path: data[1].value
+                  operator: eq
+                  value: y
+                - path: data[2].value
+                  operator: eq
+                  value: z

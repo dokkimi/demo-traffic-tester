@@ -1,0 +1,179 @@
+name: mongodb-multi-instance
+description: |
+  Two independent MongoDB instances in the same namespace. Validates that
+  the wire protocol proxy, K8s Service routing, health checks, and
+  test-agent connection management all work correctly when multiple
+  MongoDB databases coexist. Each instance has its own data.
+config:
+  timeoutSeconds: 120
+items:
+  - type: DATABASE
+    name: orders-mongo
+    database: mongodb
+  - type: DATABASE
+    name: analytics-mongo
+    database: mongodb
+tests:
+  - name: Each instance has independent data
+    steps:
+      - - name: Insert into orders-mongo
+          action:
+            type: dbQuery
+            database: orders-mongo
+            query: '{"operation":"insertOne","collection":"orders","document":{"orderId":"M-001","source":"orders"}}'
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: Insert into analytics-mongo
+          action:
+            type: dbQuery
+            database: analytics-mongo
+            query: '{"operation":"insertOne","collection":"events","document":{"eventId":"E-001","source":"analytics"}}'
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+      - - name: Verify order is in orders-mongo
+          action:
+            type: dbQuery
+            database: orders-mongo
+            query: '{"operation":"find","collection":"orders","filter":{"orderId":"M-001"}}'
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data[0].source
+                  operator: eq
+                  value: orders
+        - name: Verify event is in analytics-mongo
+          action:
+            type: dbQuery
+            database: analytics-mongo
+            query: '{"operation":"find","collection":"events","filter":{"eventId":"E-001"}}'
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data[0].source
+                  operator: eq
+                  value: analytics
+
+  - name: Data from instance A is not in instance B
+    steps:
+      - - name: Insert a unique key into orders-mongo
+          action:
+            type: dbQuery
+            database: orders-mongo
+            query: '{"operation":"insertOne","collection":"isolation_test","document":{"key":"only-in-orders"}}'
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+      - - name: Confirm key is absent from analytics-mongo
+          action:
+            type: dbQuery
+            database: analytics-mongo
+            query: '{"operation":"find","collection":"isolation_test","filter":{"key":"only-in-orders"}}'
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+                - path: data
+                  operator: length
+                  value: 0
+
+  - name: Parallel writes to both instances
+    steps:
+      - - name: Write to orders-mongo
+          action:
+            type: dbQuery
+            database: orders-mongo
+            query: '{"operation":"insertOne","collection":"parallel","document":{"id":"p1","instance":"orders"}}'
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: Write to analytics-mongo
+          action:
+            type: dbQuery
+            database: analytics-mongo
+            query: '{"operation":"insertOne","collection":"parallel","document":{"id":"p1","instance":"analytics"}}'
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+      - - name: Verify orders-mongo data
+          action:
+            type: dbQuery
+            database: orders-mongo
+            query: '{"operation":"find","collection":"parallel","filter":{"id":"p1"}}'
+          assertions:
+            - assertions:
+                - path: data[0].instance
+                  operator: eq
+                  value: orders
+        - name: Verify analytics-mongo data
+          action:
+            type: dbQuery
+            database: analytics-mongo
+            query: '{"operation":"find","collection":"parallel","filter":{"id":"p1"}}'
+          assertions:
+            - assertions:
+                - path: data[0].instance
+                  operator: eq
+                  value: analytics
+
+  - name: Different collections per instance
+    steps:
+      - - name: Insert into orders-specific collection
+          action:
+            type: dbQuery
+            database: orders-mongo
+            query: '{"operation":"insertOne","collection":"shipments","document":{"trackingId":"TRK-001","carrier":"FedEx"}}'
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+        - name: Insert into analytics-specific collection
+          action:
+            type: dbQuery
+            database: analytics-mongo
+            query: '{"operation":"insertOne","collection":"metrics","document":{"metric":"pageviews","value":42}}'
+          assertions:
+            - assertions:
+                - path: success
+                  operator: eq
+                  value: true
+      - - name: Read from orders shipments
+          action:
+            type: dbQuery
+            database: orders-mongo
+            query: '{"operation":"find","collection":"shipments","filter":{"trackingId":"TRK-001"}}'
+          assertions:
+            - assertions:
+                - path: data[0].carrier
+                  operator: eq
+                  value: FedEx
+        - name: Read from analytics metrics
+          action:
+            type: dbQuery
+            database: analytics-mongo
+            query: '{"operation":"find","collection":"metrics","filter":{"metric":"pageviews"}}'
+          assertions:
+            - assertions:
+                - path: data[0].value
+                  operator: eq
+                  value: 42
+                - path: data[0].value
+                  operator: type
+                  value: number

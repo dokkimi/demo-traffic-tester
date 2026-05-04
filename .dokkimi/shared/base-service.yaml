@@ -1,0 +1,5 @@
+type: SERVICE
+name: base-service
+image: ghcr.io/dokkimi/traffic-tester:latest
+port: 4000
+healthCheck: /health
