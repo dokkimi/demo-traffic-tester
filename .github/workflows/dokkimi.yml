@@ -56,11 +56,3 @@ jobs:
             ghcr.io/dokkimi/traffic-tester:${{ steps.version.outputs.VERSION }}
           cache-from: type=registry,ref=ghcr.io/dokkimi/traffic-tester:buildcache
           cache-to: type=registry,ref=ghcr.io/dokkimi/traffic-tester:buildcache,mode=max
-
-      - name: Make image public
-        if: success()
-        continue-on-error: true
-        run: |
-          gh api user/packages/container/traffic-tester/access_levels -X PATCH -f visibility=public
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
