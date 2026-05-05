@@ -1,6 +1,6 @@
 {
   "name": "multi-ref-items",
-  "description": "Demonstrates multi-ref $ref for items \u2014 composing a service from a base template + staging overrides",
+  "description": "Demonstrates multi-ref $ref for items — composing a service from a base template + staging overrides",
   "config": {
     "timeoutSeconds": 60
   },
@@ -27,27 +27,25 @@
     {
       "name": "Service-a with staging overrides responds",
       "steps": [
-        [
-          {
-            "name": "Health check on service-a (staging image with debug env)",
-            "action": {
-              "type": "httpRequest",
-              "method": "GET",
-              "url": "service-a/health"
-            },
-            "assertions": [
-              {
-                "assertions": [
-                  {
-                    "path": "response.status",
-                    "operator": "eq",
-                    "value": 200
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+        {
+          "name": "Health check on service-a (staging image with debug env)",
+          "action": {
+            "type": "httpRequest",
+            "method": "GET",
+            "url": "service-a/health"
+          },
+          "assertions": [
+            {
+              "assertions": [
+                {
+                  "path": "response.status",
+                  "operator": "eq",
+                  "value": 200
+                }
+              ]
+            }
+          ]
+        }
       ]
     }
   ]

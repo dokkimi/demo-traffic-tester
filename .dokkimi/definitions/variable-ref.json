@@ -1,6 +1,6 @@
 {
   "name": "variable-ref",
-  "description": "Demonstrates $ref for variables \u2014 shared variable files referenced from definition and test levels",
+  "description": "Demonstrates $ref for variables — shared variable files referenced from definition and test levels",
   "config": {
     "timeoutSeconds": 120
   },
@@ -28,32 +28,30 @@
         "expectedName": "Alice"
       },
       "steps": [
-        [
-          {
-            "name": "pgConnStr comes from shared/db-vars.json via definition $ref",
-            "action": {
-              "type": "dbQuery",
-              "database": "postgres-db",
-              "query": "SELECT * FROM users WHERE name = '{{expectedName}}' LIMIT 1"
-            },
-            "assertions": [
-              {
-                "assertions": [
-                  {
-                    "path": "success",
-                    "operator": "eq",
-                    "value": true
-                  },
-                  {
-                    "path": "data[0].name",
-                    "operator": "eq",
-                    "value": "{{expectedName}}"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+        {
+          "name": "pgConnStr comes from shared/db-vars.json via definition $ref",
+          "action": {
+            "type": "dbQuery",
+            "database": "postgres-db",
+            "query": "SELECT * FROM users WHERE name = '{{expectedName}}' LIMIT 1"
+          },
+          "assertions": [
+            {
+              "assertions": [
+                {
+                  "path": "success",
+                  "operator": "eq",
+                  "value": true
+                },
+                {
+                  "path": "data[0].name",
+                  "operator": "eq",
+                  "value": "{{expectedName}}"
+                }
+              ]
+            }
+          ]
+        }
       ]
     },
     {
@@ -63,69 +61,65 @@
         "testRunLabel": "multi-ref-test"
       },
       "steps": [
-        [
-          {
-            "name": "Uses variables from both db-vars.json and test-users.json",
-            "action": {
-              "type": "dbQuery",
-              "database": "postgres-db",
-              "query": "SELECT * FROM users WHERE name = '{{defaultUserName}}' OR email = '{{secondUserEmail}}'"
+        {
+          "name": "Uses variables from both db-vars.json and test-users.json",
+          "action": {
+            "type": "dbQuery",
+            "database": "postgres-db",
+            "query": "SELECT * FROM users WHERE name = '{{defaultUserName}}' OR email = '{{secondUserEmail}}'"
+          },
+          "assertions": [
+            {
+              "assertions": [
+                {
+                  "path": "success",
+                  "operator": "eq",
+                  "value": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Forward user to service-b using shared connection config",
+          "action": {
+            "type": "httpRequest",
+            "method": "POST",
+            "url": "service-a/forward-user",
+            "headers": {
+              "Content-Type": "application/json"
             },
-            "assertions": [
-              {
-                "assertions": [
-                  {
-                    "path": "success",
-                    "operator": "eq",
-                    "value": true
-                  }
-                ]
-              }
-            ]
-          }
-        ],
-        [
-          {
-            "name": "Forward user to service-b using shared connection config",
-            "action": {
-              "type": "httpRequest",
-              "method": "POST",
-              "url": "service-a/forward-user",
-              "headers": {
-                "Content-Type": "application/json"
-              },
-              "body": {
-                "requests": [
-                  {
-                    "baseURL": "http://service-b",
-                    "url": "/receive-user",
-                    "method": "POST",
-                    "data": {
-                      "response": {
-                        "value": {
-                          "received": true,
-                          "userName": "{{defaultUserName}}",
-                          "label": "{{testRunLabel}}"
-                        }
+            "body": {
+              "requests": [
+                {
+                  "baseURL": "http://service-b",
+                  "url": "/receive-user",
+                  "method": "POST",
+                  "data": {
+                    "response": {
+                      "value": {
+                        "received": true,
+                        "userName": "{{defaultUserName}}",
+                        "label": "{{testRunLabel}}"
                       }
                     }
                   }
-                ]
-              }
-            },
-            "assertions": [
-              {
-                "assertions": [
-                  {
-                    "path": "response.status",
-                    "operator": "eq",
-                    "value": 200
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                }
+              ]
+            }
+          },
+          "assertions": [
+            {
+              "assertions": [
+                {
+                  "path": "response.status",
+                  "operator": "eq",
+                  "value": 200
+                }
+              ]
+            }
+          ]
+        }
       ]
     }
   ]

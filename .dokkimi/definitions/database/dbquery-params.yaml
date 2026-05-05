@@ -14,120 +14,120 @@ items:
 tests:
   - name: Postgres positional $1 binds value
     steps:
-      - - name: Look up Alice by id with $1
-          action:
-            type: dbQuery
-            database: postgres-db
-            query: 'SELECT id, email, name FROM users WHERE id = $1::int'
-            params:
-              '1': '1'
-          assertions:
-            - assertions:
-                - path: success
-                  operator: eq
-                  value: true
-                - path: data[0].name
-                  operator: eq
-                  value: Alice
-                - path: data[0].email
-                  operator: eq
-                  value: alice@example.com
+      - name: Look up Alice by id with $1
+        action:
+          type: dbQuery
+          database: postgres-db
+          query: 'SELECT id, email, name FROM users WHERE id = $1::int'
+          params:
+            '1': '1'
+        assertions:
+          - assertions:
+              - path: success
+                operator: eq
+                value: true
+              - path: data[0].name
+                operator: eq
+                value: Alice
+              - path: data[0].email
+                operator: eq
+                value: alice@example.com
 
   - name: Postgres two positional placeholders $1 and $2
     steps:
-      - - name: Look up by id range
-          action:
-            type: dbQuery
-            database: postgres-db
-            query: 'SELECT name FROM users WHERE id >= $1::int AND id <= $2::int ORDER BY id'
-            params:
-              '1': '1'
-              '2': '2'
-          assertions:
-            - assertions:
-                - path: success
-                  operator: eq
-                  value: true
-                - path: data[0].name
-                  operator: eq
-                  value: Alice
-                - path: data[1].name
-                  operator: eq
-                  value: Bob
+      - name: Look up by id range
+        action:
+          type: dbQuery
+          database: postgres-db
+          query: 'SELECT name FROM users WHERE id >= $1::int AND id <= $2::int ORDER BY id'
+          params:
+            '1': '1'
+            '2': '2'
+        assertions:
+          - assertions:
+              - path: success
+                operator: eq
+                value: true
+              - path: data[0].name
+                operator: eq
+                value: Alice
+              - path: data[1].name
+                operator: eq
+                value: Bob
 
   - name: Postgres positional $1 binds by email
     steps:
-      - - name: Look up Bob by email with $1
-          action:
-            type: dbQuery
-            database: postgres-db
-            query: 'SELECT id, name FROM users WHERE email = $1'
-            params:
-              '1': bob@example.com
-          assertions:
-            - assertions:
-                - path: success
-                  operator: eq
-                  value: true
-                - path: data[0].name
-                  operator: eq
-                  value: Bob
+      - name: Look up Bob by email with $1
+        action:
+          type: dbQuery
+          database: postgres-db
+          query: 'SELECT id, name FROM users WHERE email = $1'
+          params:
+            '1': bob@example.com
+        assertions:
+          - assertions:
+              - path: success
+                operator: eq
+                value: true
+              - path: data[0].name
+                operator: eq
+                value: Bob
 
   - name: MySQL single ? binds value
     steps:
-      - - name: Look up Widget by id
-          action:
-            type: dbQuery
-            database: mysql-db
-            query: 'SELECT id, name, price FROM products WHERE id = ?'
-            params:
-              '1': '1'
-          assertions:
-            - assertions:
-                - path: success
-                  operator: eq
-                  value: true
-                - path: data[0].name
-                  operator: eq
-                  value: Widget
+      - name: Look up Widget by id
+        action:
+          type: dbQuery
+          database: mysql-db
+          query: 'SELECT id, name, price FROM products WHERE id = ?'
+          params:
+            '1': '1'
+        assertions:
+          - assertions:
+              - path: success
+                operator: eq
+                value: true
+              - path: data[0].name
+                operator: eq
+                value: Widget
 
   - name: MySQL two ? bind values in source order
     steps:
-      - - name: Look up by id range
-          action:
-            type: dbQuery
-            database: mysql-db
-            query: 'SELECT name FROM products WHERE id >= ? AND id <= ? ORDER BY id'
-            params:
-              '1': '1'
-              '2': '2'
-          assertions:
-            - assertions:
-                - path: success
-                  operator: eq
-                  value: true
-                - path: data[0].name
-                  operator: eq
-                  value: Widget
-                - path: data[1].name
-                  operator: eq
-                  value: Gadget
+      - name: Look up by id range
+        action:
+          type: dbQuery
+          database: mysql-db
+          query: 'SELECT name FROM products WHERE id >= ? AND id <= ? ORDER BY id'
+          params:
+            '1': '1'
+            '2': '2'
+        assertions:
+          - assertions:
+              - path: success
+                operator: eq
+                value: true
+              - path: data[0].name
+                operator: eq
+                value: Widget
+              - path: data[1].name
+                operator: eq
+                value: Gadget
 
   - name: MySQL repeated ? consumes a separate arg per occurrence
     steps:
-      - - name: Same value bound twice for two ? placeholders
-          action:
-            type: dbQuery
-            database: mysql-db
-            query: 'SELECT id, name FROM products WHERE name = ? OR name = ?'
-            params:
-              '1': Widget
-              '2': Widget
-          assertions:
-            - assertions:
-                - path: success
-                  operator: eq
-                  value: true
-                - path: data[0].name
-                  operator: eq
-                  value: Widget
+      - name: Same value bound twice for two ? placeholders
+        action:
+          type: dbQuery
+          database: mysql-db
+          query: 'SELECT id, name FROM products WHERE name = ? OR name = ?'
+          params:
+            '1': Widget
+            '2': Widget
+        assertions:
+          - assertions:
+              - path: success
+                operator: eq
+                value: true
+              - path: data[0].name
+                operator: eq
+                value: Widget

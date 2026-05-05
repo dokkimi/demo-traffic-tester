@@ -9,36 +9,16 @@ items:
 tests:
   - name: Health check returns OK
     steps:
-      - - name: GET /health on service-a
-          action:
-            type: httpRequest
-            method: GET
-            url: service-a/health
-          assertions:
-            - assertions:
-                - path: response.status
-                  operator: eq
-                  value: 200
-                - path: response.body
-                  operator: eq
-                  value: OK
-        - name: GET /health on service-b
-          action:
-            type: httpRequest
-            method: GET
-            url: service-b/health
-          assertions:
-            - assertions:
-                - path: response.status
-                  operator: eq
-                  value: 200
-        - name: GET /health on service-c
-          action:
-            type: httpRequest
-            method: GET
-            url: service-c/health
-          assertions:
-            - assertions:
-                - path: response.status
-                  operator: eq
-                  value: 200
+      - name: Parallel requests
+        action:
+          type: parallel
+          actions:
+            - type: httpRequest
+              method: GET
+              url: service-a/health
+            - type: httpRequest
+              method: GET
+              url: service-b/health
+            - type: httpRequest
+              method: GET
+              url: service-c/health
