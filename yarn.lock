@@ -2739,10 +2739,10 @@ diff@^4.0.1:
   resolved "https://registry.yarnpkg.com/diff/-/diff-4.0.4.tgz#7a6dbfda325f25f07517e9b518f897c08332e07d"
   integrity sha512-X07nttJQkwkfKfvTPG/KSnE2OMdcUCao6+eXF3wmnIQRn2aPAHH3VxDbDOdegkd6JbPsXqShpvEOHfAT+nCNwQ==
 
-dokkimi@^0.3.2:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/dokkimi/-/dokkimi-0.3.2.tgz#d6b7029933a99415b423fa11df461f8f38805a46"
-  integrity sha512-LqoZ+0+f7OAb+EyBH0rd1fysHp3wI7fWViNRFy/mcq0tWxByNRM9sS7oxx0LRNdSYhekIjqgAGL0gscxGl3cPg==
+dokkimi@^0.3.3:
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/dokkimi/-/dokkimi-0.3.3.tgz#14906e979e293a2444763b4d8d74002021c8388a"
+  integrity sha512-dQfID7UnzDoXwQfGIw+PZcF/xyeXsttY20xH6gwOPwnQB4xhCrU6Pkqa3HsN7VS8DLEqgwAnPNoCFulH7+cv+A==
   dependencies:
     "@kubernetes/client-node" "^1.4.0"
     "@nestjs/axios" "^4.0.1"
