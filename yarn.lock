@@ -2739,10 +2739,10 @@ diff@^4.0.1:
   resolved "https://registry.yarnpkg.com/diff/-/diff-4.0.4.tgz#7a6dbfda325f25f07517e9b518f897c08332e07d"
   integrity sha512-X07nttJQkwkfKfvTPG/KSnE2OMdcUCao6+eXF3wmnIQRn2aPAHH3VxDbDOdegkd6JbPsXqShpvEOHfAT+nCNwQ==
 
-dokkimi@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/dokkimi/-/dokkimi-0.3.0.tgz#0203a4f923836919240787c2b4918dd109c4fec2"
-  integrity sha512-y0aLiwUgzcolBlohyyoAy8j1gUT+HE43yM5tdXpDjGs7NFi+zvJe86rdo9F5aQg5oM3spPMvYr3G6fnHzDfoCg==
+dokkimi@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/dokkimi/-/dokkimi-0.3.2.tgz#d6b7029933a99415b423fa11df461f8f38805a46"
+  integrity sha512-LqoZ+0+f7OAb+EyBH0rd1fysHp3wI7fWViNRFy/mcq0tWxByNRM9sS7oxx0LRNdSYhekIjqgAGL0gscxGl3cPg==
   dependencies:
     "@kubernetes/client-node" "^1.4.0"
     "@nestjs/axios" "^4.0.1"
@@ -2770,6 +2770,7 @@ dokkimi@^0.3.0:
     prisma "^7.0.0"
     reflect-metadata "^0.2.2"
     rxjs "^7.8.1"
+    tar-stream "^3.2.0"
     uuid "^13.0.0"
 
 dotenv-expand@12.0.3:
@@ -5575,7 +5576,7 @@ tar-fs@^3.0.9:
     bare-fs "^4.0.1"
     bare-path "^3.0.0"
 
-tar-stream@^3.1.5:
+tar-stream@^3.1.5, tar-stream@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/tar-stream/-/tar-stream-3.2.0.tgz#0d0064d9b67ea3c9f5abde155e35faab0df37591"
   integrity sha512-ojzvCvVaNp6aOTFmG7jaRD0meowIAuPc3cMMhSgKiVWws1GyHbGd/xvnyuRKcKlMpt3qvxx6r0hreCNITP9hIg==
