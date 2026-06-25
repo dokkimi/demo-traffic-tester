@@ -1,0 +1,103 @@
+name: error-handling
+description: Edge cases for database query errors and unknown database types
+config:
+  timeoutSeconds: 120
+items:
+  - $ref: ../shared/service-a.yaml
+  - $ref: ../shared/postgres.yaml
+  - $ref: ../shared/mysql.json
+tests:
+  - name: Malformed Postgres query returns error in queryResults
+    variables:
+      $ref: ../shared/db-vars.json
+    steps:
+      - name: Send an invalid SQL query
+        action:
+          type: httpRequest
+          method: POST
+          url: service-a/bad-query
+          headers:
+            Content-Type: application/json
+          body:
+            queries:
+              - databaseType: postgres
+                connectionString: '{{pgConnStr}}'
+                command: SELECT * FROM nonexistent_table_xyz
+        assertions:
+          - assertions:
+              - path: response.status
+                operator: eq
+                value: 200
+              - path: response.body.queryResults
+                operator: length
+                value: 1
+              - path: response.body.queryResults[0][0].query
+                operator: contains
+                value: nonexistent_table_xyz
+              - path: response.body.queryResults[0][0].result
+                operator: type
+                value: string
+              - path: response.body.queryResults[0][0].result
+                operator: contains
+                value: does not exist
+
+  - name: Malformed MySQL query returns error in queryResults
+    variables:
+      mysqlConnStr: mysql://dokkimi:dokkimi@mysql-db:3306/dokkimi
+    steps:
+      - name: Send an invalid MySQL query
+        action:
+          type: httpRequest
+          method: POST
+          url: service-a/bad-mysql-query
+          headers:
+            Content-Type: application/json
+          body:
+            queries:
+              - databaseType: mysql
+                connectionString: '{{mysqlConnStr}}'
+                command: INVALID SQL SYNTAX HERE !!!
+        assertions:
+          - assertions:
+              - path: response.status
+                operator: eq
+                value: 200
+              - path: response.body.queryResults
+                operator: length
+                value: 1
+              - path: response.body.queryResults[0][0].query
+                operator: eq
+                value: INVALID SQL SYNTAX HERE !!!
+              - path: response.body.queryResults[0][0].result
+                operator: type
+                value: string
+              - path: response.body.queryResults[0][0].result
+                operator: contains
+                value: error in your SQL syntax
+
+  - name: Unknown database type returns null in queryResults
+    steps:
+      - name: Send a query with an unrecognized databaseType
+        action:
+          type: httpRequest
+          method: POST
+          url: service-a/unknown-db
+          headers:
+            Content-Type: application/json
+          body:
+            queries:
+              - databaseType: oracle
+                connectionString: fake://localhost:1521/test
+                command: SELECT 1 FROM DUAL
+        assertions:
+          - assertions:
+              - path: response.status
+                operator: eq
+                value: 200
+              - path: response.body.queryResults
+                operator: length
+                value: 1
+              - path: response.body.queryResults[0]
+                operator: isEmpty
+              - path: response.body.results
+                operator: isEmpty

@@ -3,6 +3,9 @@ import { AppController } from './app.controller';
 import { MySQLClient } from './dbClients/mysql.client';
 import { PostgresClient } from './dbClients/postgres.client';
 import { MongoDBClient } from './dbClients/mongodb.client';
+import { RedisClient } from './dbClients/redis.client';
+import { AmqpClient } from './brokerClients/amqp.client';
+import { KafkaClient } from './brokerClients/kafka.client';
 import { Action } from './app.types';
 import axios from 'axios';
 import { Response } from 'express';
@@ -27,6 +30,21 @@ describe('AppController', () => {
     queryDB: jest.fn(),
   };
 
+  const mockRedisClient = {
+    queryDB: jest.fn(),
+  };
+
+  const mockAmqpClient = {
+    publish: jest.fn(),
+    publishBatch: jest.fn(),
+    consume: jest.fn(),
+  };
+
+  const mockKafkaClient = {
+    produce: jest.fn(),
+    consume: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
@@ -42,6 +60,18 @@ describe('AppController', () => {
         {
           provide: MongoDBClient,
           useValue: mockMongoDBClient,
+        },
+        {
+          provide: RedisClient,
+          useValue: mockRedisClient,
+        },
+        {
+          provide: AmqpClient,
+          useValue: mockAmqpClient,
+        },
+        {
+          provide: KafkaClient,
+          useValue: mockKafkaClient,
         },
       ],
     }).compile();

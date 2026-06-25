@@ -3,7 +3,20 @@ import { MySQLClient } from './dbClients/mysql.client';
 import { PostgresClient } from './dbClients/postgres.client';
 import { MongoDBClient } from './dbClients/mongodb.client';
 import { RedisClient } from './dbClients/redis.client';
-import { All, Body, Controller, Get, Res } from '@nestjs/common';
+import { AmqpClient } from './brokerClients/amqp.client';
+import type {
+  AmqpPublishRequest,
+  AmqpPublishBatchRequest,
+  AmqpConsumeRequest,
+  AmqpSubscribeRequest,
+  AmqpPublishRawRequest,
+} from './brokerClients/amqp.client';
+import { KafkaClient } from './brokerClients/kafka.client';
+import type {
+  KafkaProduceRequest,
+  KafkaConsumeRequest,
+} from './brokerClients/kafka.client';
+import { All, Body, Controller, Get, Post, Res } from '@nestjs/common';
 import axios, { AxiosRequestConfig } from 'axios';
 import * as express from 'express';
 
@@ -14,11 +27,48 @@ export class AppController {
     private readonly postgresClient: PostgresClient,
     private readonly mongodbClient: MongoDBClient,
     private readonly redisClient: RedisClient,
+    private readonly amqpClient: AmqpClient,
+    private readonly kafkaClient: KafkaClient,
   ) {}
 
   @Get('/health')
   public health() {
     return 'OK';
+  }
+
+  @Post('/amqp/publish')
+  public async amqpPublish(@Body() body: AmqpPublishRequest) {
+    return this.amqpClient.publish(body);
+  }
+
+  @Post('/amqp/publish-batch')
+  public async amqpPublishBatch(@Body() body: AmqpPublishBatchRequest) {
+    return this.amqpClient.publishBatch(body);
+  }
+
+  @Post('/amqp/consume')
+  public async amqpConsume(@Body() body: AmqpConsumeRequest) {
+    return this.amqpClient.consume(body);
+  }
+
+  @Post('/amqp/subscribe')
+  public async amqpSubscribe(@Body() body: AmqpSubscribeRequest) {
+    return this.amqpClient.subscribe(body);
+  }
+
+  @Post('/amqp/publish-raw')
+  public async amqpPublishRaw(@Body() body: AmqpPublishRawRequest) {
+    return this.amqpClient.publishRaw(body);
+  }
+
+  @Post('/kafka/produce')
+  public async kafkaProduce(@Body() body: KafkaProduceRequest) {
+    return this.kafkaClient.produce(body);
+  }
+
+  @Post('/kafka/consume')
+  public async kafkaConsume(@Body() body: KafkaConsumeRequest) {
+    return this.kafkaClient.consume(body);
   }
 
   @All('*')
